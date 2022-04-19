@@ -60,7 +60,7 @@ typedef struct {
 	mdns_record_t txt_record[2];
 } service_t;
 
-static mdns_string_t
+mdns_string_t
 ipv4_address_to_string(char* buffer, size_t capacity, const struct sockaddr_in* addr,
                        size_t addrlen) {
 	char host[NI_MAXHOST] = {0};
@@ -104,7 +104,7 @@ ipv6_address_to_string(char* buffer, size_t capacity, const struct sockaddr_in6*
 	return str;
 }
 
-static mdns_string_t
+mdns_string_t
 ip_address_to_string(char* buffer, size_t capacity, const struct sockaddr* addr, size_t addrlen) {
 	if (addr->sa_family == AF_INET6)
 		return ipv6_address_to_string(buffer, capacity, (const struct sockaddr_in6*)addr, addrlen);
@@ -112,7 +112,7 @@ ip_address_to_string(char* buffer, size_t capacity, const struct sockaddr* addr,
 }
 
 // Callback handling parsing answers to queries sent
-static int
+int
 query_callback(int sock, const struct sockaddr* from, size_t addrlen, mdns_entry_type_t entry,
                uint16_t query_id, uint16_t rtype, uint16_t rclass, uint32_t ttl, const void* data,
                size_t size, size_t name_offset, size_t name_length, size_t record_offset,
@@ -449,7 +449,7 @@ dump_callback(int sock, const struct sockaddr* from, size_t addrlen, mdns_entry_
 }
 
 // Open sockets for sending one-shot multicast queries from an ephemeral port
-static int
+int
 open_client_sockets(int* sockets, int max_sockets, int port) {
 	// When sending, each socket can only send to one network interface
 	// Thus we need to open one socket for each interface and address family
@@ -699,7 +699,7 @@ open_service_sockets(int* sockets, int max_sockets) {
 }
 
 // Send a DNS-SD query
-static int
+int
 send_dns_sd(void) {
 	int sockets[32];
 	int num_sockets = open_client_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]), 0);
@@ -1159,7 +1159,7 @@ void signal_handler(int signal) {
 #endif
 
 int
-main(int argc, const char* const* argv) {
+__main(int argc, const char* const* argv) {
 	int mode = 0;
 	const char* service = "_test-mdns._tcp.local.";
 	const char* hostname = "dummy-host";

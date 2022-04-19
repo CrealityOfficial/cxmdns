@@ -109,6 +109,11 @@ struct mdns_string_t {
 	size_t length;
 };
 
+struct mdns_ip_mac_str {
+	char ip[16] ;
+	char mac[12];
+};
+
 struct mdns_string_pair_t {
 	size_t offset;
 	size_t length;
@@ -174,6 +179,8 @@ struct mdns_query_t {
 	size_t length;
 };
 
+void  discoveryServiceC();
+
 // mDNS/DNS-SD public API
 
 //! Open and setup a IPv4 socket for mDNS/DNS-SD. To bind the socket to a specific interface, pass
@@ -231,6 +238,7 @@ mdns_discovery_send(int sock);
 static inline size_t
 mdns_discovery_recv(int sock, void* buffer, size_t capacity, mdns_record_callback_fn callback,
                     void* user_data);
+
 
 //! Send a multicast mDNS query on the given socket for the given service name. The supplied buffer
 //! will be used to build the query packet and must be 32 bit aligned. The query ID can be set to
@@ -394,6 +402,24 @@ mdns_socket_open_ipv4(const struct sockaddr_in* saddr) {
 	}
 	return sock;
 }
+//==========================add 
+int
+send_dns_sd(void);
+int
+open_client_sockets(int* sockets, int max_sockets, int port);
+
+mdns_string_t
+ipv4_address_to_string(char* buffer, size_t capacity, const struct sockaddr_in* addr,
+	size_t addrlen);
+mdns_string_t
+ip_address_to_string(char* buffer, size_t capacity, const struct sockaddr* addr, size_t addrlen);
+
+int
+query_callback(int sock, const struct sockaddr* from, size_t addrlen, mdns_entry_type_t entry,
+	uint16_t query_id, uint16_t rtype, uint16_t rclass, uint32_t ttl, const void* data,
+	size_t size, size_t name_offset, size_t name_length, size_t record_offset,
+	size_t record_length, void* user_data);
+
 
 static inline int
 mdns_socket_setup_ipv4(int sock, const struct sockaddr_in* saddr) {
@@ -874,6 +900,7 @@ static inline int
 mdns_discovery_send(int sock) {
 	return mdns_multicast_send(sock, mdns_services_query, sizeof(mdns_services_query));
 }
+
 
 static inline size_t
 mdns_discovery_recv(int sock, void* buffer, size_t capacity, mdns_record_callback_fn callback,
