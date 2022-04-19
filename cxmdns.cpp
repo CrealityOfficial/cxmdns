@@ -163,15 +163,24 @@ namespace cxnet
 
 	void  discoveryService(const std::string& prefix, IServiceCallBack* callback)
 	{
+		std::vector<machine_info> retmachineInfos = syncDiscoveryService(prefix);
+		if (callback)
+		{
+			callback->onDiscoverMachine(std::move(retmachineInfos));
+		}
+		return ;
+	}
+	std::vector<machine_info> syncDiscoveryService(const std::string& prefix)
+	{
 		std::vector<machine_info> retmachineInfos;
 		const char* hostname = "cxslice-host";
-//初始化网络环境
+		//初始化网络环境
 #ifdef _WIN32
 		WORD versionWanted = MAKEWORD(1, 1);
 		WSADATA wsaData;
 		if (WSAStartup(versionWanted, &wsaData)) {
 			printf("Failed to initialize WinSock\n");
-			return ;
+			return retmachineInfos;
 		}
 		char hostname_buffer[256];
 		DWORD hostname_size = (DWORD)sizeof(hostname_buffer);
@@ -192,7 +201,7 @@ namespace cxnet
 #ifdef _WIN32
 			WSACleanup();
 #endif
-			return ;
+			return retmachineInfos;
 		}
 		printf("Opened %d socket%s for DNS-SD\n", num_sockets, num_sockets > 1 ? "s" : "");
 		printf("Sending DNS-SD discovery\n");
@@ -210,7 +219,7 @@ namespace cxnet
 		printf("Reading DNS-SD replies\n");
 		do {
 			struct timeval timeout;
-			timeout.tv_sec = 2;
+			timeout.tv_sec = 1;
 			timeout.tv_usec = 0;
 
 			int nfds = 0;
@@ -225,33 +234,23 @@ namespace cxnet
 			if (res > 0) {
 				for (int isock = 0; isock < num_sockets; ++isock) {
 					if (FD_ISSET(sockets[isock], &readfs)) {
-					//	records += mdns_discovery_recv(sockets[isock], buffer, capacity, query_callback,
-					//		0);
-						recvMachineInfoFromSocket(sockets[isock], buffer, capacity, prefix.c_str(), retmachineInfos,isock);
+						//	records += mdns_discovery_recv(sockets[isock], buffer, capacity, query_callback,
+						//		0);
+						recvMachineInfoFromSocket(sockets[isock], buffer, capacity, prefix.c_str(), retmachineInfos, isock);
 						recordNum++;
 					}
 				}
 			}
-	} while (res > 0);
+		} while (res > 0);
 
-	if (callback)
-	{
-		callback->onDiscoverMachine(std::move(retmachineInfos));
-	}
-	free(buffer);
-//
+		free(buffer);
+		//
 		for (int isock = 0; isock < num_sockets; ++isock)
 			mdns_socket_close(sockets[isock]);
 		printf("Closed socket%s\n", num_sockets ? "s" : "");
 #ifdef _WIN32
 		WSACleanup();
 #endif
-		return ;
-	}
-
-	std::vector<machine_info> syncDiscoveryService(std::string& prefix)
-	{
-		std::vector<machine_info> retInfo;
-		return retInfo;
+		return std::move(retmachineInfos);
 	}
 }

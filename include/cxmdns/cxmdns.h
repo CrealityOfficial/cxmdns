@@ -20,6 +20,6 @@ namespace cxnet
 	 };
 
 	CC_DECLARE_EXPORT void  discoveryService(const std::string& prefix, IServiceCallBack* callback=nullptr);
-	CC_DECLARE_EXPORT std::vector<machine_info> syncDiscoveryService(std::string& prefix);
+	CC_DECLARE_EXPORT std::vector<machine_info> syncDiscoveryService(const  std::string& prefix);
 }
 #endif
