@@ -154,7 +154,7 @@ namespace cxnet
 					char mac[16] = { 0 };
 					sscanf(fromaddrstr.str, "%[^:]", ip);
 					//"CXSWBox-FCEE12002125._udp.local." length=32 }
-					sscanf(namestr.str, "CXSWBox-%[^.]",mac);
+					sscanf(namestr.str, "_CXSWBox-%[^.]",mac);
 					retmachineInfos.push_back({ ip,mac });
 				}
 			}
