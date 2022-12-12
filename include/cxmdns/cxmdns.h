@@ -9,17 +9,9 @@ namespace cxnet
 	struct machine_info
 	{
 		std::string machineIp;
-		std::string machineMac;
+		std::string answer;
 	};
-	class CC_DECLARE_EXPORT IServiceCallBack
-	{
-	public:
-		IServiceCallBack() {};
-		~IServiceCallBack() {};
-		virtual void onDiscoverMachine(std::vector<machine_info> machineInfos) =0;
-	 };
 
-	CC_DECLARE_EXPORT void  discoveryService(const std::string& prefix, IServiceCallBack* callback=nullptr);
-	CC_DECLARE_EXPORT std::vector<machine_info> syncDiscoveryService(const  std::string& prefix);
+	CC_DECLARE_EXPORT std::vector<machine_info> syncDiscoveryService(const std::vector<std::string>& prefix);
 }
 #endif

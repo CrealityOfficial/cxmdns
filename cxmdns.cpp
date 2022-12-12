@@ -58,7 +58,7 @@ namespace cxnet
 	}
 #endif
 
-	void recvMachineInfoFromSocket(int sock, void* buffer, size_t capacity, const char* prefix, std::vector<machine_info>& retmachineInfos, int recIndex)
+	void recvMachineInfoFromSocket(int sock, void* buffer, size_t capacity, const std::vector<std::string>& prefix, std::vector<machine_info>& retmachineInfos, int recIndex)
 	{
 		struct sockaddr_in6 addr;
 		struct sockaddr* saddr = (struct sockaddr*)&addr;
@@ -147,30 +147,26 @@ namespace cxnet
 				if (rtype == MDNS_RECORDTYPE_PTR) {
 					mdns_string_t namestr = mdns_record_parse_ptr(buffer, data_size, offset, length,
 						namebuf, sizeof(namebuf));
-
-					if (!strstr(namestr.str, prefix)) return;
+					bool bFound = false;
+					for (const auto& item : prefix)
+					{
+						if (strstr(namestr.str, item.c_str()))
+							bFound = true;
+					}
+					if (!bFound)
+					{
+						return;
+					}
 
 					char ip[16] = { 0 };
-					char mac[16] = { 0 };
 					sscanf(fromaddrstr.str, "%[^:]", ip);
-					//"CXSWBox-FCEE12002125._udp.local." length=32 }
-					sscanf(namestr.str, "_CXSWBox-%[^.]",mac);
-					retmachineInfos.push_back({ ip,mac });
+					retmachineInfos.push_back({ ip,namestr.str });
 				}
 			}
 		}
 	}
 
-	void  discoveryService(const std::string& prefix, IServiceCallBack* callback)
-	{
-		std::vector<machine_info> retmachineInfos = syncDiscoveryService(prefix);
-		if (callback)
-		{
-			callback->onDiscoverMachine(std::move(retmachineInfos));
-		}
-		return ;
-	}
-	std::vector<machine_info> syncDiscoveryService(const std::string& prefix)
+	std::vector<machine_info> syncDiscoveryService(const std::vector<std::string>& prefix)
 	{
 		std::vector<machine_info> retmachineInfos;
 		const char* hostname = "cxslice-host";
@@ -219,7 +215,7 @@ namespace cxnet
 		printf("Reading DNS-SD replies\n");
 		do {
 			struct timeval timeout;
-			timeout.tv_sec = 1;
+			timeout.tv_sec = 5;
 			timeout.tv_usec = 0;
 
 			int nfds = 0;
@@ -236,7 +232,7 @@ namespace cxnet
 					if (FD_ISSET(sockets[isock], &readfs)) {
 						//	records += mdns_discovery_recv(sockets[isock], buffer, capacity, query_callback,
 						//		0);
-						recvMachineInfoFromSocket(sockets[isock], buffer, capacity, prefix.c_str(), retmachineInfos, isock);
+						recvMachineInfoFromSocket(sockets[isock], buffer, capacity, prefix, retmachineInfos, isock);
 						recordNum++;
 					}
 				}
